@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# Function to display usage information
+show_usage() {
+    cat << EOF
+Usage: $0 [-a|--anonymous] [-t|--toc] [-l|--lang <lang>] <input_file>
+  -h, --help         Show this help message
+  -a, --anonymous    Generate PDF without personal information in footer
+  -t, --toc          Generate table of contents
+  -l, --lang <lang>  Set TOC language (default: english, use 'italian' for Italian)
+Example: $0 document.md
+Example: $0 --anonymous --toc document.md
+EOF
+}
+
 # Initialize variables
 anonymous=false
 toc=false
@@ -8,6 +21,10 @@ toc_lang="english"  # default language
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
+        -h|--help)
+            show_usage
+            exit 0
+            ;;
         -a|--anonymous)
             anonymous=true
             shift
@@ -22,12 +39,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         -*)
             echo "Unknown option $1"
-            echo "Usage: $0 [-a|--anonymous] [-t|--toc] [-l|--lang <lang>] <input_file>"
-            echo "  -a, --anonymous    Generate PDF without personal information in footer"
-            echo "  -t, --toc          Generate table of contents"
-            echo "  -l, --lang <lang>  Set TOC language (default: english, use 'italian' for Italian)"
-            echo "Example: $0 document.md"
-            echo "Example: $0 --anonymous --toc document.md"
+            show_usage
             exit 1
             ;;
         *)
@@ -39,12 +51,7 @@ done
 
 # Check if input file is provided
 if [ -z "$input_file" ]; then
-    echo "Usage: $0 [-a|--anonymous] [-t|--toc] [-l|--lang <lang>] <input_file>"
-    echo "  -a, --anonymous    Generate PDF without personal information in footer"
-    echo "  -t, --toc          Generate table of contents"
-    echo "  -l, --lang <lang>  Set TOC language (default: english, use 'italian' for Italian)"
-    echo "Example: $0 document.md"
-    echo "Example: $0 --anonymous --toc document.md"
+    show_usage
     exit 1
 fi
 

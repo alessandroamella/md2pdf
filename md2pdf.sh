@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Personal info for footer - change this as needed!
+FOOTER_TEXT="Alessandro Amella - P.IVA: 04183560368" 
+
 # Function to display usage information
 show_usage() {
     cat << EOF
@@ -17,7 +20,6 @@ EOF
 anonymous=false
 toc=false
 toc_lang="english"  # default language
-footer_personal_info="Alessandro Amella - P.IVA: 04183560368"  # Personal info for footer
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -76,7 +78,7 @@ output_file="${name_without_ext}.pdf"
 if [ "$anonymous" = true ]; then
     footer_left=""
 else
-    footer_left="$footer_personal_info"
+    footer_left="$FOOTER_TEXT"
 fi
 
 # Build pandoc command with optional TOC

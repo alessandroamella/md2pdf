@@ -2,6 +2,8 @@
 
 # Initialize variables
 anonymous=false
+toc=false
+toc_lang="english"  # default language
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -10,12 +12,22 @@ while [[ $# -gt 0 ]]; do
             anonymous=true
             shift
             ;;
+        -t|--toc)
+            toc=true
+            shift
+            ;;
+        -l|--lang)
+            toc_lang="$2"
+            shift 2
+            ;;
         -*)
             echo "Unknown option $1"
-            echo "Usage: $0 [-a|--anonymous] <input_file>"
+            echo "Usage: $0 [-a|--anonymous] [-t|--toc] [-l|--lang <lang>] <input_file>"
             echo "  -a, --anonymous    Generate PDF without personal information in footer"
+            echo "  -t, --toc          Generate table of contents"
+            echo "  -l, --lang <lang>  Set TOC language (default: english, use 'italian' for Italian)"
             echo "Example: $0 document.md"
-            echo "Example: $0 --anonymous document.md"
+            echo "Example: $0 --anonymous --toc document.md"
             exit 1
             ;;
         *)
@@ -27,10 +39,12 @@ done
 
 # Check if input file is provided
 if [ -z "$input_file" ]; then
-    echo "Usage: $0 [-a|--anonymous] <input_file>"
+    echo "Usage: $0 [-a|--anonymous] [-t|--toc] [-l|--lang <lang>] <input_file>"
     echo "  -a, --anonymous    Generate PDF without personal information in footer"
+    echo "  -t, --toc          Generate table of contents"
+    echo "  -l, --lang <lang>  Set TOC language (default: english, use 'italian' for Italian)"
     echo "Example: $0 document.md"
-    echo "Example: $0 --anonymous document.md"
+    echo "Example: $0 --anonymous --toc document.md"
     exit 1
 fi
 
@@ -57,22 +71,33 @@ else
     footer_left="Alessandro Amella - P.IVA: 04183560368"
 fi
 
-# Run pandoc command
-pandoc "$input_file" -o "$output_file" \
+# Build pandoc command with optional TOC
+pandoc_cmd="pandoc \"$input_file\" -o \"$output_file\" \
   --pdf-engine=xelatex \
   --template=eisvogel \
-  --top-level-division=chapter \
-  -V mainfont="Fira Sans" \
+  --top-level-division=chapter"
+
+# Add TOC flags if requested
+if [ "$toc" = true ]; then
+    pandoc_cmd="$pandoc_cmd --toc --toc-depth=3 -V lang=$toc_lang"
+fi
+
+# Add remaining options
+pandoc_cmd="$pandoc_cmd \
+  -V mainfont=\"Fira Sans\" \
   -V fontsize=12pt \
-  -V geometry="left=0.8in,right=0.8in,top=1.25in,bottom=1.25in" \
+  -V geometry=\"left=0.8in,right=0.8in,top=1.25in,bottom=1.25in\" \
   -V colorlinks=true \
   -V linkcolor=blue \
   -V documentclass=scrbook \
   -V book=true \
-  -V title="$formatted_title" \
-  -V header-left="$formatted_title" \
-  -V footer-left="$footer_left" \
-  -V footer-right="\\thepage"
+  -V title=\"$formatted_title\" \
+  -V header-left=\"$formatted_title\" \
+  -V footer-left=\"$footer_left\" \
+  -V footer-right=\"\\\\thepage\""
+
+# Run pandoc command
+eval $pandoc_cmd
 
 # Check if conversion was successful
 if [ $? -eq 0 ]; then

@@ -6,13 +6,14 @@ FOOTER_TEXT="Alessandro Amella - P.IVA: 04183560368"
 # Function to display usage information
 show_usage() {
     cat << EOF
-Usage: $0 [-a|--anonymous] [-t|--toc] [-l|--lang <lang>] <input_file>
+Usage: $0 [-a|--anonymous] [-t|--toc] [-l|--lang <lang>] [--title <title>] <input_file>
   -h, --help         Show this help message
   -a, --anonymous    Generate PDF without personal information in footer
   -t, --toc          Generate table of contents
   -l, --lang <lang>  Set TOC language (default: english, use 'italian' for Italian)
+  --title <title>    Set custom title (overrides automatic formatting)
 Example: $0 document.md
-Example: $0 --anonymous --toc document.md
+Example: $0 --anonymous --toc --title "My Custom Title" document.md
 EOF
 }
 
@@ -20,6 +21,7 @@ EOF
 anonymous=false
 toc=false
 toc_lang="english"  # default language
+custom_title=""
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -38,6 +40,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -l|--lang)
             toc_lang="$2"
+            shift 2
+            ;;
+        --title)
+            custom_title="$2"
             shift 2
             ;;
         -*)
@@ -71,6 +77,13 @@ name_without_ext="${filename%.*}"
 # Format title: replace hyphens/underscores with spaces and capitalize each word
 formatted_title=$(echo "$name_without_ext" | sed 's/[-_]/ /g' | sed 's/\b\w/\U&/g')
 
+# Use custom title if provided, otherwise use formatted title
+if [ -n "$custom_title" ]; then
+    final_title="$custom_title"
+else
+    final_title="$formatted_title"
+fi
+
 # Set output filename
 output_file="${name_without_ext}.pdf"
 
@@ -101,8 +114,8 @@ pandoc_cmd="$pandoc_cmd \
   -V linkcolor=blue \
   -V documentclass=scrbook \
   -V book=true \
-  -V title=\"$formatted_title\" \
-  -V header-left=\"$formatted_title\" \
+  -V title=\"$final_title\" \
+  -V header-left=\"$final_title\" \
   -V footer-left=\"$footer_left\" \
   -V footer-right=\"\\\\thepage\""
 

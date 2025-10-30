@@ -114,6 +114,7 @@ pandoc_cmd="$pandoc_cmd \
   -V linkcolor=blue \
   -V documentclass=scrbook \
   -V book=true \
+  -V classoption=oneside \
   -V title=\"$final_title\" \
   -V header-left=\"$final_title\" \
   -V footer-left=\"$footer_left\" \

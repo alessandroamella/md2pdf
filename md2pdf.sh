@@ -6,14 +6,16 @@ FOOTER_TEXT="Alessandro Amella - P.IVA: 04183560368"
 # Function to display usage information
 show_usage() {
     cat << EOF
-Usage: $0 [-a|--anonymous] [-t|--toc] [-l|--lang <lang>] [--title <title>] <input_file>
+Usage: $0 [-a|--anonymous] [-t|--toc] [-l|--lang <lang>] [--title <title>] [--footer <text>] <input_file>
   -h, --help         Show this help message
   -a, --anonymous    Generate PDF without personal information in footer
   -t, --toc          Generate table of contents
   -l, --lang <lang>  Set TOC language (default: english, use 'italian' for Italian)
   --title <title>    Set custom title (overrides automatic formatting)
+  --footer <text>    Set custom footer text (overrides default)
 Example: $0 document.md
 Example: $0 --anonymous --toc --title "My Custom Title" document.md
+Example: $0 --footer "Custom Footer Text" document.md
 EOF
 }
 
@@ -22,6 +24,7 @@ anonymous=false
 toc=false
 toc_lang="english"  # default language
 custom_title=""
+custom_footer=""
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -44,6 +47,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --title)
             custom_title="$2"
+            shift 2
+            ;;
+        --footer)
+            custom_footer="$2"
             shift 2
             ;;
         -*)
@@ -87,8 +94,10 @@ fi
 # Set output filename
 output_file="${name_without_ext}.pdf"
 
-# Set footer content based on anonymous flag
-if [ "$anonymous" = true ]; then
+# Set footer content based on custom footer, anonymous flag, or default
+if [ -n "$custom_footer" ]; then
+    footer_left="$custom_footer"
+elif [ "$anonymous" = true ]; then
     footer_left=""
 else
     footer_left="$FOOTER_TEXT"

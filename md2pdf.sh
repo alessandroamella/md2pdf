@@ -6,16 +6,17 @@ FOOTER_TEXT="Alessandro Amella - P.IVA: 04183560368"
 # Function to display usage information
 show_usage() {
     cat << EOF
-Usage: $0 [-a|--anonymous] [-t|--toc] [-l|--lang <lang>] [--title <title>] [--footer <text>] <input_file>
+Usage: $0 [-a|--anonymous] [-t|--toc] [-l|--lang <lang>] [-f|--format] [--title <title>] [--footer <text>] <input_file>
   -h, --help         Show this help message
   -a, --anonymous    Generate PDF without personal information in footer
   -t, --toc          Generate table of contents
   -l, --lang <lang>  Set TOC language (default: english, use 'italian' for Italian)
+  -f, --format       Format markdown with Prettier before conversion
   --title <title>    Set custom title (overrides automatic formatting)
   --footer <text>    Set custom footer text (overrides default)
 Example: $0 document.md
 Example: $0 --anonymous --toc --title "My Custom Title" document.md
-Example: $0 --footer "Custom Footer Text" document.md
+Example: $0 --format --footer "Custom Footer Text" document.md
 EOF
 }
 
@@ -23,6 +24,7 @@ EOF
 anonymous=false
 toc=false
 toc_lang="english"  # default language
+format=false
 custom_title=""
 custom_footer=""
 
@@ -44,6 +46,10 @@ while [[ $# -gt 0 ]]; do
         -l|--lang)
             toc_lang="$2"
             shift 2
+            ;;
+        -f|--format)
+            format=true
+            shift
             ;;
         --title)
             custom_title="$2"
@@ -93,6 +99,24 @@ fi
 
 # Set output filename
 output_file="${name_without_ext}.pdf"
+
+# Format markdown with Prettier if requested
+if [ "$format" = true ]; then
+    temp_formatted_md=$(mktemp --suffix=.md)
+    trap "rm -f '$temp_formatted_md'" EXIT
+
+    echo "Formatting markdown with Prettier..."
+    if pnpx prettier --parser markdown "$input_file" > "$temp_formatted_md" 2>/dev/null; then
+        # Print where temp file is stored for debugging
+        echo "Temporary formatted markdown file: $temp_formatted_md"
+        # Use the formatted file for conversion
+        input_file="$temp_formatted_md"
+    else
+        echo "Warning: Prettier formatting failed, using original file"
+        # Clean up temp file if prettier failed
+        rm -f "$temp_formatted_md"
+    fi
+fi
 
 # Set footer content based on custom footer, anonymous flag, or default
 if [ -n "$custom_footer" ]; then
